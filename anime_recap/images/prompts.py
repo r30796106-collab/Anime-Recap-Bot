@@ -1,4 +1,5 @@
 """Stable character-aware visual prompt construction."""
+
 from anime_recap.models import RecapProject, Scene
 
 
