@@ -60,6 +60,23 @@ def main() -> None:
     images_parser.add_argument("--timeout", type=float, default=600.0)
     images_parser.add_argument("--style", default=None)
 
+    free_images_parser = subparsers.add_parser(
+        "images-free", help="Generate scene images through the free public Pollinations endpoint"
+    )
+    free_images_parser.add_argument("plan", type=Path)
+    free_images_parser.add_argument("--output-dir", type=Path, default=Path("outputs/images"))
+    free_images_parser.add_argument("--style", default=None)
+    free_images_parser.add_argument("--seed", type=int, default=1000)
+    free_images_parser.add_argument("--width", type=int, default=768)
+    free_images_parser.add_argument("--height", type=int, default=1024)
+
+    enhance_parser = subparsers.add_parser("enhance-images", help="Upscale scene images with optional Real-ESRGAN NCNN CLI")
+    enhance_parser.add_argument("images_dir", type=Path)
+    enhance_parser.add_argument("--output-dir", type=Path, default=Path("outputs/enhanced"))
+    enhance_parser.add_argument("--executable", default="realesrgan-ncnn-vulkan")
+    enhance_parser.add_argument("--model", default="realesr-animevideov3")
+    enhance_parser.add_argument("--scale", type=int, choices=(2, 3, 4), default=2)
+
     render_parser = subparsers.add_parser(
         "render", help="Assemble a recap from scene images and optional audio assets"
     )
@@ -133,6 +150,25 @@ def main() -> None:
             style=args.style or DEFAULT_STYLE,
         )
         print(f"Generated and downloaded {len(outputs)} scene images to {args.output_dir}")
+    elif args.command == "images-free":
+        from anime_recap.images.pollinations import PollinationsClient, generate_scene_images_free
+        from anime_recap.images.prompts import DEFAULT_STYLE
+
+        project = _load_project(args.plan)
+        outputs = generate_scene_images_free(
+            project, PollinationsClient(), args.output_dir,
+            style=args.style or DEFAULT_STYLE, seed=args.seed, width=args.width, height=args.height,
+        )
+        print(f"Generated {len(outputs)} images with the free Pollinations provider in {args.output_dir}")
+    elif args.command == "enhance-images":
+        from anime_recap.images.enhance import enhance_images
+
+        valid_exts = {".png", ".jpg", ".jpeg", ".webp"}
+        sources = sorted(path for path in args.images_dir.iterdir() if path.is_file() and path.suffix.lower() in valid_exts)
+        if not sources:
+            raise SystemExit(f"No image files found in {args.images_dir}")
+        outputs = enhance_images(sources, args.output_dir, executable=args.executable, model=args.model, scale=args.scale)
+        print(f"Enhanced {len(outputs)} images into {args.output_dir}")
     elif args.command == "render":
         from anime_recap.export import export_video
         from anime_recap.quality import validate_recap_assets
