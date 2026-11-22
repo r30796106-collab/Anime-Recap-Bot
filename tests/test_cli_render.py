@@ -57,7 +57,7 @@ def test_render_command_runs_preflight_and_calls_export(tmp_path, monkeypatch, c
     cli.main()
 
     assert len(calls) == 1
-    project, image_paths, output_path, kwargs = calls[0]
+    _project, image_paths, output_path, kwargs = calls[0]
     assert [path.name for path in image_paths] == [first.name, second.name]
     assert output_path == output
     assert kwargs["audio_path"] == audio
