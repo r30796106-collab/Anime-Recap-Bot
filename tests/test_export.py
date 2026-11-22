@@ -23,3 +23,21 @@ def test_export_requires_one_image_per_scene(tmp_path: Path) -> None:
         assert "exactly one image" in str(exc)
     else:
         raise AssertionError("Expected image count validation to fail")
+
+
+def test_export_can_mix_narration_and_background_music(tmp_path: Path) -> None:
+    image = tmp_path / "scene.png"
+    narration = tmp_path / "voice.wav"
+    music = tmp_path / "music.wav"
+    image.write_bytes(b"image")
+    narration.write_bytes(b"voice")
+    music.write_bytes(b"music")
+    project = RecapProject(title="Demo", scenes=[Scene("s1", "नमस्ते", duration_seconds=3)])
+    command = build_ffmpeg_command(
+        project, [image], tmp_path / "out.mp4",
+        audio_path=narration, background_music_path=music, music_volume=0.15,
+    )
+    joined = " ".join(command)
+    assert "amix=inputs=2" in joined
+    assert "volume=0.150" in joined
+    assert "[aout]" in joined
