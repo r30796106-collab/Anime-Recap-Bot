@@ -66,7 +66,7 @@ def test_rejects_non_image_response(monkeypatch, tmp_path):
     response.headers = {"Content-Type": "text/html"}
 
     monkeypatch.setattr("anime_recap.images.pollinations.urlopen", lambda *a, **kw: response)
-    with pytest.raises(PollinationsError, match="non-image"):
+    with pytest.raises(PollinationsError, match="not a recognized image"):
         PollinationsClient(api_key="test-token", retries=0).generate("prompt", tmp_path / "bad.png")
 
 
