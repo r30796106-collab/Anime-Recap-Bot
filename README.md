@@ -128,13 +128,13 @@ do not expose an unauthenticated ComfyUI instance to the public internet.
 
 ## Free image generation and anime upscaling
 
-A no-key public image endpoint is available as an experimental alternative to self-hosted ComfyUI. It is rate-limited/availability-controlled by the service and may fail; generated results should be reviewed for relevance.
+Pollinations is an optional cloud image-generation alternative to self-hosted ComfyUI. Its current unified gateway requires an API key; service availability, model access and costs/credits may change. Get a key from `enter.pollinations.ai`, store it in `POLLINATIONS_API_KEY` (never commit it), and review generated scene relevance.
 
 ```bash
-anime-recap images-free examples/sample_recap_plan.json --output-dir outputs/images
+export POLLINATIONS_API_KEY='YOUR_KEY_HERE'\nanime-recap images-free examples/sample_recap_plan.json --output-dir outputs/images --model tongyi-mai/z-image-turbo
 ```
 
-This creates one prompt-conditioned image per scene using the character-aware prompts, with retry attempts and a distinct seed per scene. The public endpoint is not guaranteed to remain free or available and is not a production SLA.
+This creates one prompt-conditioned image per scene using the character-aware prompts, retries failed requests, validates image bytes, and varies the seed per scene. Authentication is required; use models with free credits/allowance only if available in your account. The endpoint is not a guaranteed free service or production SLA.
 
 Optional anime image enhancement uses the Real-ESRGAN NCNN/Vulkan command-line executable, which must be installed separately:
 
