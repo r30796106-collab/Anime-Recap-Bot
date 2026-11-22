@@ -87,3 +87,46 @@ Alternatively, pass one already-concatenated narration track with `--audio narra
 instead of `--voice-dir`. The render step checks that every scene has a non-empty image
 before invoking FFmpeg. External ComfyUI and Kokoro services still need to be configured
 separately; this command does not claim to generate those assets by itself.
+
+
+### Generate scene images with ComfyUI
+
+Export a workflow from ComfyUI using **Save (API Format)**. The workflow must be the API-format
+JSON object (node IDs mapped to node definitions), not the regular UI workflow export. Identify
+the positive and optional negative `CLIPTextEncode` node IDs, plus the optional sampler seed
+node ID. The command injects a character-aware scene prompt into the positive text node, applies
+the negative prompt when configured, submits one workflow per scene, waits for completion and
+downloads the first image output for each scene.
+
+```bash
+# Create the sample plan
+anime-recap plan examples/sample_story_hi.txt \
+  --title "दीये की आखिरी रोशनी" \
+  --output workspace/scene_plan.json
+
+# Point to your reachable ComfyUI server and API-format workflow
+export COMFYUI_URL="http://127.0.0.1:8188"
+anime-recap images workspace/scene_plan.json \
+  --workflow workflows/anime_portrait_api.json \
+  --prompt-node 6 \
+  --negative-prompt-node 7 \
+  --seed-node 3 \
+  --seed 4100 \
+  --output-dir outputs/images
+
+# Generate Hindi narration, subtitles and assemble the MP4
+anime-recap voice workspace/scene_plan.json --voice YOUR_INSTALLED_HINDI_VOICE
+anime-recap srt workspace/scene_plan.json --output outputs/recap.srt
+anime-recap render workspace/scene_plan.json \
+  --images-dir outputs/images \
+  --voice-dir outputs/voice \
+  --subtitles outputs/recap.srt \
+  --output outputs/recap.mp4
+```
+
+Node IDs above are examples only: read them from your own API-format workflow. The workflow must
+contain a positive text input named `text`; if supplied, the negative prompt node must also expose
+`inputs.text`, and the seed node must expose `inputs.seed`. Use a workflow compatible with the
+models and custom nodes installed on your ComfyUI server. The bot does not install model weights
+or custom nodes automatically. For remote servers, use an authenticated/private network path;
+do not expose an unauthenticated ComfyUI instance to the public internet.
