@@ -1,11 +1,10 @@
 """FFmpeg command builder for assembling still-image recap scenes."""
-from pathlib import Path
 import shutil
 import subprocess
 from collections.abc import Sequence
+from pathlib import Path
 
 from anime_recap.models import RecapProject
-
 
 def build_ffmpeg_command(
     project: RecapProject,
