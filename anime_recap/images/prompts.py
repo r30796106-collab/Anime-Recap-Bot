@@ -2,7 +2,6 @@
 
 from anime_recap.models import RecapProject, Scene
 
-
 DEFAULT_STYLE = (
     "high-quality 2D Japanese anime illustration, clean line art, "
     "cinematic composition, expressive faces, coherent lighting, detailed background"
