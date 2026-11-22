@@ -2,6 +2,7 @@ import json
 
 import pytest
 
+from anime_recap.images.comfyui import ComfyUIError
 from anime_recap.images.generation import generate_scene_images
 from anime_recap.models import RecapProject, Scene
 
@@ -93,7 +94,7 @@ def test_rejects_workflow_without_image_outputs(tmp_path):
         def wait_for_completion(self, prompt_id, timeout=600.0):
             return {"outputs": {"9": {"gifs": []}}}
 
-    with pytest.raises(Exception, match="without image outputs"):
+    with pytest.raises(ComfyUIError, match="without image outputs"):
         generate_scene_images(
             _project(), _workflow(), NoImageClient(), tmp_path, prompt_node_id="1"
         )
