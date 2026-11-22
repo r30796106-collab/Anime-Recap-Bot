@@ -61,7 +61,8 @@ def main() -> None:
     images_parser.add_argument("--style", default=None)
 
     free_images_parser = subparsers.add_parser(
-        "images-free", help="Generate scene images through Pollinations (API key required)"
+        "images-pollinations", aliases=["images-free"],
+        help="Generate scene images through Pollinations (API key required)"
     )
     free_images_parser.add_argument("plan", type=Path)
     free_images_parser.add_argument("--output-dir", type=Path, default=Path("outputs/images"))
@@ -152,7 +153,7 @@ def main() -> None:
             style=args.style or DEFAULT_STYLE,
         )
         print(f"Generated and downloaded {len(outputs)} scene images to {args.output_dir}")
-    elif args.command == "images-free":
+    elif args.command in {"images-pollinations", "images-free"}:
         from anime_recap.images.pollinations import PollinationsClient, generate_scene_images_free
         from anime_recap.images.prompts import DEFAULT_STYLE
 
@@ -161,7 +162,7 @@ def main() -> None:
             project, PollinationsClient(model=args.model, timeout=args.timeout), args.output_dir,
             style=args.style or DEFAULT_STYLE, seed=args.seed, width=args.width, height=args.height,
         )
-        print(f"Generated {len(outputs)} images with the free Pollinations provider in {args.output_dir}")
+        print(f"Generated {len(outputs)} images with Pollinations in {args.output_dir}")
     elif args.command == "enhance-images":
         from anime_recap.images.enhance import enhance_images
 
