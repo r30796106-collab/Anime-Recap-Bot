@@ -41,6 +41,18 @@ def main() -> None:
     voice_parser.add_argument("--voice", required=True, help="Installed Kokoro Hindi voice ID")
     voice_parser.add_argument("--output-dir", type=Path, default=Path("outputs/voice"))
 
+    render_parser = subparsers.add_parser(
+        "render", help="Assemble a recap from scene images and optional audio assets"
+    )
+    render_parser.add_argument("plan", type=Path)
+    render_parser.add_argument("--images-dir", type=Path, default=Path("outputs/images"))
+    render_parser.add_argument("--voice-dir", type=Path)
+    render_parser.add_argument("--audio", type=Path, help="One combined narration audio file")
+    render_parser.add_argument("--music", type=Path)
+    render_parser.add_argument("--subtitles", type=Path)
+    render_parser.add_argument("--output", type=Path, default=Path("outputs/recap.mp4"))
+    render_parser.add_argument("--ffmpeg", default="ffmpeg")
+
     args = parser.parse_args()
 
     if args.command == "plan":
@@ -75,12 +87,78 @@ def main() -> None:
         }
         args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"Created {len(project.scenes)} scenes: {args.output}")
+    elif args.command == "render":
+        from anime_recap.export import export_video
+        from anime_recap.quality import validate_recap_assets
+
+        if args.audio is not None and args.voice_dir is not None:
+            raise SystemExit("Choose either --audio or --voice-dir, not both")
+        project = _load_project(args.plan)
+        image_paths = []
+        for index, scene in enumerate(project.scenes, start=1):
+            candidates = [
+                args.images_dir / f"{index:03d}_{scene.scene_id}{suffix}"
+                for suffix in (".png", ".jpg", ".jpeg", ".webp")
+            ]
+            candidates.extend(
+                args.images_dir / f"{scene.scene_id}{suffix}"
+                for suffix in (".png", ".jpg", ".jpeg", ".webp")
+            )
+            image_paths.append(next((path for path in candidates if path.is_file()), candidates[0]))
+        report = validate_recap_assets(project, image_paths)
+        if not report["ok"]:
+            raise SystemExit("Asset preflight failed: " + "; ".join(report["issues"]))
+
+        narration = args.audio
+        if args.voice_dir is not None:
+            import shutil
+            import subprocess
+            import tempfile
+
+            voice_paths = [
+                args.voice_dir / f"{index:03d}_{scene.scene_id}.wav"
+                for index, scene in enumerate(project.scenes, start=1)
+            ]
+            missing = [str(path) for path in voice_paths if not path.is_file() or path.stat().st_size == 0]
+            if missing:
+                raise SystemExit("Missing or empty per-scene voice files: " + ", ".join(missing))
+            if shutil.which(args.ffmpeg) is None:
+                raise SystemExit("FFmpeg executable not found; install FFmpeg and retry")
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            narration = args.output.with_name(args.output.stem + ".narration.wav")
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", suffix=".txt", delete=False
+            ) as listing:
+                list_path = Path(listing.name)
+                for voice_path in voice_paths:
+                    escaped = str(voice_path.resolve()).replace("'", "'\\''")
+                    listing.write(f"file '{escaped}'\n")
+            try:
+                subprocess.run(
+                    [args.ffmpeg, "-y", "-f", "concat", "-safe", "0", "-i",
+                     str(list_path), "-c:a", "pcm_s16le", str(narration)],
+                    check=True,
+                )
+            finally:
+                list_path.unlink(missing_ok=True)
+
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        export_video(
+            project,
+            image_paths,
+            args.output,
+            audio_path=narration,
+            subtitle_path=args.subtitles,
+            ffmpeg_bin=args.ffmpeg,
+            background_music_path=args.music,
+        )
+        print(f"Rendered {len(project.scenes)} scenes: {args.output}")
     elif args.command == "srt":
         project = _load_project(args.plan)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(render_srt(project), encoding="utf-8")
         print(f"Created subtitles: {args.output}")
-    else:
+    elif args.command == "voice":
         try:
             from anime_recap.voice.kokoro import KokoroHindiTTS
             from anime_recap.voice.production import create_scene_narration
