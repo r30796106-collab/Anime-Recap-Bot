@@ -15,8 +15,8 @@ class KokoroHindiTTS:
         if not text.strip():
             raise ValueError("Narration text is empty")
         try:
-            from kokoro import KPipeline
             import soundfile as sf
+            from kokoro import KPipeline
         except ImportError as exc:
             raise RuntimeError(
                 "Kokoro TTS is optional. Install the voice extra: pip install 'anime-recap-bot[voice]'"
