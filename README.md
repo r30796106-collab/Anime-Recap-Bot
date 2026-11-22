@@ -125,3 +125,22 @@ contain a positive text input named `text`; if supplied, the negative prompt nod
 models and custom nodes installed on your ComfyUI server. The bot does not install model weights
 or custom nodes automatically. For remote servers, use an authenticated/private network path;
 do not expose an unauthenticated ComfyUI instance to the public internet.
+
+## Free image generation and anime upscaling
+
+A no-key public image endpoint is available as an experimental alternative to self-hosted ComfyUI. It is rate-limited/availability-controlled by the service and may fail; generated results should be reviewed for relevance.
+
+```bash
+anime-recap images-free examples/sample_recap_plan.json --output-dir outputs/images
+```
+
+This creates one prompt-conditioned image per scene using the character-aware prompts, with retry attempts and a distinct seed per scene. The public endpoint is not guaranteed to remain free or available and is not a production SLA.
+
+Optional anime image enhancement uses the Real-ESRGAN NCNN/Vulkan command-line executable, which must be installed separately:
+
+```bash
+anime-recap enhance-images outputs/images --output-dir outputs/enhanced --model realesr-animevideov3 --scale 2
+```
+
+The enhancer validates each input/output and does not run if the executable is missing. Enhancement is opt-in; use the enhanced directory as your render images directory only after checking quality.
+
