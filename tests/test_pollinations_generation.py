@@ -16,7 +16,7 @@ class FakeResponse:
         return False
 
     def read(self):
-        return b"\\xff\\xd8\\xfffake-jpeg-bytes"
+        return b"\xff\xd8\xfffake-jpeg-bytes"
 
 
 def _project():
@@ -29,21 +29,32 @@ def _project():
     )
 
 
-def test_free_provider_downloads_scene_images(tmp_path, monkeypatch):
+def test_authenticated_provider_downloads_scene_images(tmp_path, monkeypatch):
     urls = []
+    headers = []
 
     def fake_urlopen(request, timeout):
         urls.append(request.full_url)
+        headers.append(request.headers)
         return FakeResponse()
 
     monkeypatch.setattr("anime_recap.images.pollinations.urlopen", fake_urlopen)
-    outputs = generate_scene_images_free(_project(), PollinationsClient(api_key="test-token", retries=0), tmp_path, seed=50)
+    outputs = generate_scene_images_free(
+        _project(), PollinationsClient(api_key="test-token", retries=0), tmp_path, seed=50
+    )
 
     assert [p.name for p in outputs] == ["001_scene_001.jpg", "002_scene_002.jpg"]
-    assert all(p.read_bytes().startswith(b"\\xff\\xd8\\xff") for p in outputs)
+    assert all(p.read_bytes().startswith(b"\xff\xd8\xff") for p in outputs)
     assert len(urls) == 2
     assert "boy%20at%20a%20railway%20station" in urls[0]
     assert "seed=50" in urls[0] and "seed=51" in urls[1]
+    assert all(h.get("Authorization") == "Bearer test-token" for h in headers)
+
+
+def test_requires_api_key(monkeypatch, tmp_path):
+    monkeypatch.delenv("POLLINATIONS_API_KEY", raising=False)
+    with pytest.raises(PollinationsError, match="requires a Pollinations API key"):
+        PollinationsClient(retries=0).generate("prompt", tmp_path / "image.jpg")
 
 
 def test_retries_failed_request(monkeypatch, tmp_path):
