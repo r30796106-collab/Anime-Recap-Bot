@@ -37,7 +37,15 @@ FFmpeg and any optional image/TTS backends must be installed separately when tho
 
 ## Project status
 
-Bootstrap stage. The repository currently defines the project boundaries, quality gates and modular architecture; generation backends will be integrated incrementally.
+The repository now includes a provider-neutral story/scene plan, SRT generation, a ComfyUI HTTP adapter (workflow submission, history polling and output image download), character-aware prompt construction, a Kokoro adapter, per-scene narration orchestration, still-image motion filters, audio mixing helpers, FFmpeg export command construction and deterministic asset preflight checks. These components have unit/CI coverage, but external ComfyUI generation, real Kokoro Hindi audio quality and a complete end-to-end MP4 have not yet been verified.
+
+### Current verification boundaries
+
+- GitHub Actions CI validates Python tests, lint and compilation; it does not prove external model inference works.
+- ComfyUI requires a user-managed reachable server, a compatible workflow JSON and model weights installed on that server.
+- Kokoro requires its optional dependencies and model assets; no model is downloaded by default.
+- Motion filters currently animate still images; they do not generate new character animation frames.
+- Character consistency is supported through reusable character descriptions in prompts. Visual identity consistency still needs reference-image/IP-Adapter style backend support and human review.
 
 ## License
 
