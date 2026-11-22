@@ -1,9 +1,9 @@
 from pathlib import Path
+
 import pytest
 
 from anime_recap.export import build_ffmpeg_command
 from anime_recap.models import RecapProject, Scene
-
 
 def test_ffmpeg_command_maps_vertical_60fps(tmp_path: Path) -> None:
     image = tmp_path / "scene.png"
