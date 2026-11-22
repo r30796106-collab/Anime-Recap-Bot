@@ -83,7 +83,7 @@ def test_generates_and_downloads_one_image_per_scene(tmp_path):
 
 
 def test_rejects_missing_prompt_node(tmp_path):
-    with pytest.raises(ValueError, match="Positive prompt node"):
+    with pytest.raises(TypeError, match="Positive prompt node"):
         generate_scene_images(
             _project(), _workflow(), FakeComfyUI(), tmp_path, prompt_node_id="missing"
         )
