@@ -23,9 +23,10 @@ def test_character_reference_is_repeated_in_every_scene_prompt():
 
 
 def test_unknown_character_reference_fails_validation():
-    scene = Scene("s1", "Hello", "A scene", ["missing"])
+    scene = Scene("s1", "Hello", "A scene")
     project = RecapProject("Demo", scenes=[scene], characters=[])
     assert "A scene" in build_scene_prompt(project, scene)
+    scene.character_ids = ["missing"]
     project.characters = [Character("known", "Hero", "blue hair")]
     with pytest.raises(ValueError, match="unknown characters"):
         build_scene_prompt(project, scene)
