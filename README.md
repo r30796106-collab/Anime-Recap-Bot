@@ -126,7 +126,7 @@ models and custom nodes installed on your ComfyUI server. The bot does not insta
 or custom nodes automatically. For remote servers, use an authenticated/private network path;
 do not expose an unauthenticated ComfyUI instance to the public internet.
 
-## Free image generation and anime upscaling
+## Pollinations image generation and anime upscaling
 
 Pollinations is an optional cloud image-generation alternative to self-hosted ComfyUI. Its current unified gateway requires an API key; service availability, model access and costs/credits may change. Get a key from `enter.pollinations.ai`, store it in `POLLINATIONS_API_KEY` (never commit it), and review generated scene relevance.
 
