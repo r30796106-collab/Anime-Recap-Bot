@@ -3,6 +3,21 @@ from dataclasses import dataclass, field
 
 
 @dataclass(slots=True)
+class Character:
+    character_id: str
+    name: str
+    visual_description: str
+    reference_image: str | None = None
+    negative_prompt: str = ""
+
+    def validate(self) -> None:
+        if not self.character_id.strip() or not self.name.strip():
+            raise ValueError("Character ID and name must not be empty")
+        if not self.visual_description.strip():
+            raise ValueError(f"Character {self.character_id} needs a visual description")
+
+
+@dataclass(slots=True)
 class Scene:
     scene_id: str
     narration: str
@@ -19,6 +34,7 @@ class RecapProject:
     target_width: int = 1080
     target_height: int = 1920
     scenes: list[Scene] = field(default_factory=list)
+    characters: list[Character] = field(default_factory=list)
 
     def validate(self) -> None:
         if not self.title.strip():
@@ -29,3 +45,16 @@ class RecapProject:
             raise ValueError("Output dimensions must be positive")
         if any(scene.duration_seconds <= 0 for scene in self.scenes):
             raise ValueError("Every scene duration must be positive")
+        character_ids = [character.character_id for character in self.characters]
+        if len(character_ids) != len(set(character_ids)):
+            raise ValueError("Character IDs must be unique")
+        for character in self.characters:
+            character.validate()
+        if self.characters:
+            known_ids = set(character_ids)
+            for scene in self.scenes:
+                unknown = set(scene.character_ids) - known_ids
+                if unknown:
+                    raise ValueError(
+                        f"Scene {scene.scene_id} references unknown characters: {sorted(unknown)}"
+                    )
