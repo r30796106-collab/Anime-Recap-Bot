@@ -39,3 +39,14 @@ def test_missing_prompt_id_is_reported():
         pytest.raises(ComfyUIError, match="prompt_id"),
     ):
         client.submit_workflow({"1": {}})
+
+
+def test_download_image_saves_comfyui_output(tmp_path):
+    client = ComfyUIClient("http://localhost:8188")
+    with patch("anime_recap.images.comfyui.urlopen", return_value=FakeResponse({"ok": True})) as call:
+        destination = client.download_image(
+            {"filename": "scene.png", "subfolder": "output", "type": "output"},
+            tmp_path / "scene.png",
+        )
+    assert destination.read_bytes() == b'{"ok": true}'
+    assert "filename=scene.png" in call.call_args.args[0].full_url
