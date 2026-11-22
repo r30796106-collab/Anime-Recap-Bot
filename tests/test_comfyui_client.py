@@ -34,6 +34,8 @@ def test_invalid_server_url_is_rejected():
 
 def test_missing_prompt_id_is_reported():
     client = ComfyUIClient("http://localhost:8188")
-    with patch("anime_recap.images.comfyui.urlopen", return_value=FakeResponse({})):
-        with pytest.raises(ComfyUIError, match="prompt_id"):
-            client.submit_workflow({"1": {}})
+    with (
+        patch("anime_recap.images.comfyui.urlopen", return_value=FakeResponse({})),
+        pytest.raises(ComfyUIError, match="prompt_id"),
+    ):
+        client.submit_workflow({"1": {}})
