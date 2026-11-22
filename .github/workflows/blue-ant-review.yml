@@ -1,0 +1,56 @@
+name: Blue Ant Read-only Project Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: Branch, tag or commit to audit
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out Blue Ant auditor
+        uses: actions/checkout@v4
+        with:
+          repository: r30796106-collab/Blue-ant
+          ref: main
+          path: blue-ant
+          persist-credentials: false
+
+      - name: Check out Anime Recap Bot target
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ inputs.target_ref }}
+          path: target
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run fixed read-only specialist fleet
+        env:
+          PYTHONPATH: blue-ant/src
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python -m blue_ant.subbot_report --repo target --output artifacts/blue-ant-report.json
+          cat artifacts/blue-ant-report.json
+
+      - name: Upload Blue Ant audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: blue-ant-anime-recap-audit
+          path: artifacts/blue-ant-report.json
+          if-no-files-found: error
+          retention-days: 7
