@@ -61,7 +61,7 @@ def main() -> None:
     images_parser.add_argument("--style", default=None)
 
     free_images_parser = subparsers.add_parser(
-        "images-free", help="Generate scene images through the free public Pollinations endpoint"
+        "images-free", help="Generate scene images through Pollinations (API key required)"
     )
     free_images_parser.add_argument("plan", type=Path)
     free_images_parser.add_argument("--output-dir", type=Path, default=Path("outputs/images"))
@@ -69,6 +69,8 @@ def main() -> None:
     free_images_parser.add_argument("--seed", type=int, default=1000)
     free_images_parser.add_argument("--width", type=int, default=768)
     free_images_parser.add_argument("--height", type=int, default=1024)
+    free_images_parser.add_argument("--model", default="tongyi-mai/z-image-turbo")
+    free_images_parser.add_argument("--timeout", type=float, default=120.0)
 
     enhance_parser = subparsers.add_parser("enhance-images", help="Upscale scene images with optional Real-ESRGAN NCNN CLI")
     enhance_parser.add_argument("images_dir", type=Path)
@@ -156,7 +158,7 @@ def main() -> None:
 
         project = _load_project(args.plan)
         outputs = generate_scene_images_free(
-            project, PollinationsClient(), args.output_dir,
+            project, PollinationsClient(model=args.model, timeout=args.timeout), args.output_dir,
             style=args.style or DEFAULT_STYLE, seed=args.seed, width=args.width, height=args.height,
         )
         print(f"Generated {len(outputs)} images with the free Pollinations provider in {args.output_dir}")
