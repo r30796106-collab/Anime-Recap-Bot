@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import json
 import time
+from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 
@@ -51,6 +53,25 @@ class ComfyUIClient:
                 return record
             time.sleep(min(poll_interval, max(0.0, deadline - time.monotonic())))
         raise TimeoutError(f"ComfyUI workflow {prompt_id} did not finish in time")
+
+    def download_image(self, image: dict[str, str], output_path: str | Path) -> Path:
+        """Download one image descriptor returned by a ComfyUI history record."""
+        required = ("filename", "subfolder", "type")
+        if any(not isinstance(image.get(key), str) for key in required):
+            raise ValueError("Image descriptor must contain filename, subfolder and type")
+        query = urlencode({key: image[key] for key in required})
+        request = Request(self.base_url + "/view?" + query, method="GET")
+        try:
+            with urlopen(request, timeout=self.timeout) as response:
+                data = response.read()
+        except (HTTPError, URLError, TimeoutError) as exc:
+            raise ComfyUIError(f"ComfyUI image download failed: {exc}") from exc
+        if not data:
+            raise ComfyUIError("ComfyUI returned an empty image")
+        destination = Path(output_path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(data)
+        return destination
 
     def _json_request(self, method: str, path: str, payload: dict[str, Any] | None = None):
         data = json.dumps(payload).encode("utf-8") if payload is not None else None
