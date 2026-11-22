@@ -6,6 +6,7 @@ from pathlib import Path
 
 from anime_recap.models import RecapProject
 
+
 def build_ffmpeg_command(
     project: RecapProject,
     image_paths: Sequence[str | Path],
