@@ -42,3 +42,14 @@ Bootstrap stage. The repository currently defines the project boundaries, qualit
 ## License
 
 No project license has been selected yet. Until a license is added, all rights are reserved by the repository owner. Third-party components retain their own licenses.
+
+## Blue Ant read-only audit
+
+This repository includes an on-demand **Blue Ant Read-only Project Audit** workflow.
+
+1. Open the repository's **Actions** tab.
+2. Select **Blue Ant Read-only Project Audit**.
+3. Choose **Run workflow** and select the branch/ref to inspect.
+4. Download the generated JSON report from the workflow run's artifacts.
+
+Blue Ant's fixed specialists inspect repository structure, tests/CI, documentation and selected safety patterns. They are read-only: they do not execute this project's tests or modify files. GitHub Actions CI is the source of truth for test execution.
