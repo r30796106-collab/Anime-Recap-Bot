@@ -16,9 +16,9 @@ class PollinationsError(RuntimeError):
 
 
 def _image_extension(data: bytes, content_type: str) -> str:
-    if data.startswith(b"\\xff\\xd8\\xff"):
+    if data.startswith(b"\xff\xd8\xff"):
         return ".jpg"
-    if data.startswith(b"\\x89PNG\\r\\n\\x1a\\n"):
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
         return ".png"
     if data.startswith(b"RIFF") and data[8:12] == b"WEBP":
         return ".webp"
