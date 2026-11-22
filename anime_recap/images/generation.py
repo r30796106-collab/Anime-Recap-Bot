@@ -59,7 +59,7 @@ def generate_scene_images(
 
     prompt_node = workflow.get(prompt_node_id)
     if not isinstance(prompt_node, dict) or not isinstance(prompt_node.get("inputs"), dict):
-        raise ValueError(f"Positive prompt node {prompt_node_id!r} is missing or invalid")
+        raise TypeError(f"Positive prompt node {prompt_node_id!r} is missing or invalid")
     if "text" not in prompt_node["inputs"]:
         raise ValueError(f"Positive prompt node {prompt_node_id!r} has no text input")
     if negative_prompt_node_id:
