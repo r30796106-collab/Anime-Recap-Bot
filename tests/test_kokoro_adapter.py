@@ -15,11 +15,12 @@ def test_kokoro_adapter_lazy_loads_and_writes_audio(tmp_path, monkeypatch) -> No
             yield text, "phonemes", [0.1, 0.2, 0.3]
 
     fake_kokoro = types.SimpleNamespace(KPipeline=FakePipeline)
-    fake_soundfile = types.SimpleNamespace(
-        write=lambda path, samples, rate: open(path, "w", encoding="utf-8").write(
-            f"{rate}:{len(samples)}"
-        )
-    )
+
+    def fake_write(path, samples, rate):
+        with open(path, "w", encoding="utf-8") as output_file:
+            output_file.write(f"{rate}:{len(samples)}")
+
+    fake_soundfile = types.SimpleNamespace(write=fake_write)
     monkeypatch.setitem(sys.modules, "kokoro", fake_kokoro)
     monkeypatch.setitem(sys.modules, "soundfile", fake_soundfile)
 
