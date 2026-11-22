@@ -1,5 +1,6 @@
 """Deterministic story-to-scene draft generation (no AI/provider required)."""
 import re
+
 from anime_recap.models import RecapProject, Scene
 
 _SENTENCE_END = re.compile(r"(?<=[.!?।])\s+")
