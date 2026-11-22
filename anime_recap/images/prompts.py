@@ -22,7 +22,6 @@ def build_scene_prompt(
         raise ValueError("Style description must not be empty")
     characters = {character.character_id: character for character in project.characters}
     descriptions = []
-    negative = []
     for character_id in scene.character_ids:
         character = characters.get(character_id)
         if character is None:
@@ -30,8 +29,6 @@ def build_scene_prompt(
         descriptions.append(
             f"{character.name} (consistent design): {character.visual_description}"
         )
-        if character.negative_prompt.strip():
-            negative.append(character.negative_prompt.strip())
     parts = [style.strip()]
     if descriptions:
         parts.append("Character reference details: " + "; ".join(descriptions))
