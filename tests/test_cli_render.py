@@ -12,8 +12,8 @@ def _write_plan(path):
             {
                 "title": "Sample",
                 "scenes": [
-                    {"scene_id": "scene_001", "narration": "पहला दृश्य"},
-                    {"scene_id": "scene_002", "narration": "दूसरा दृश्य"},
+                    {"scene_id": "scene_001", "narration": "पहला दृश्य", "visual_prompt": "पहला दृश्य"},
+                    {"scene_id": "scene_002", "narration": "दूसरा दृश्य", "visual_prompt": "दूसरा दृश्य"},
                 ],
             },
             ensure_ascii=False,
