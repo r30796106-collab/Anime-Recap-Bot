@@ -72,10 +72,10 @@ JPEG and WebP are supported.
 
 ```bash
 anime-recap plan examples/sample_story_hi.txt --title "दीये की आखिरी रोशनी"
-anime-recap srt workspace/scene_plan.json --output outputs/recap.srt
+anime-recap srt examples/sample_recap_plan.json --output outputs/recap.srt
 # Generate scene images with your configured ComfyUI workflow and place them in outputs/images/.
-anime-recap voice workspace/scene_plan.json --voice YOUR_KOKORO_HINDI_VOICE
-anime-recap render workspace/scene_plan.json \
+anime-recap voice examples/sample_recap_plan.json --voice YOUR_KOKORO_HINDI_VOICE
+anime-recap render examples/sample_recap_plan.json \
   --images-dir outputs/images \
   --voice-dir outputs/voice \
   --subtitles outputs/recap.srt \
@@ -99,14 +99,9 @@ the negative prompt when configured, submits one workflow per scene, waits for c
 downloads the first image output for each scene.
 
 ```bash
-# Create the sample plan
-anime-recap plan examples/sample_story_hi.txt \
-  --title "दीये की आखिरी रोशनी" \
-  --output workspace/scene_plan.json
-
-# Point to your reachable ComfyUI server and API-format workflow
+# This checked-in sample plan contains six 5-second scenes and fixed Aarav/Dadi profiles.
 export COMFYUI_URL="http://127.0.0.1:8188"
-anime-recap images workspace/scene_plan.json \
+anime-recap images examples/sample_recap_plan.json \
   --workflow workflows/anime_portrait_api.json \
   --prompt-node 6 \
   --negative-prompt-node 7 \
@@ -115,9 +110,9 @@ anime-recap images workspace/scene_plan.json \
   --output-dir outputs/images
 
 # Generate Hindi narration, subtitles and assemble the MP4
-anime-recap voice workspace/scene_plan.json --voice YOUR_INSTALLED_HINDI_VOICE
-anime-recap srt workspace/scene_plan.json --output outputs/recap.srt
-anime-recap render workspace/scene_plan.json \
+anime-recap voice examples/sample_recap_plan.json --voice YOUR_INSTALLED_HINDI_VOICE
+anime-recap srt examples/sample_recap_plan.json --output outputs/recap.srt
+anime-recap render examples/sample_recap_plan.json \
   --images-dir outputs/images \
   --voice-dir outputs/voice \
   --subtitles outputs/recap.srt \
