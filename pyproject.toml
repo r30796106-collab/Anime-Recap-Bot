@@ -12,6 +12,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.6"]
+voice = ["kokoro>=0.9.4", "soundfile>=0.12"]
 
 [project.scripts]
 anime-recap = "anime_recap.cli:main"
