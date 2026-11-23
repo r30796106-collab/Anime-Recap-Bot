@@ -22,9 +22,9 @@ def _image_extension(data: bytes, content_type: str) -> str:
             f"Provider response is not a recognized image: unexpected content type {content_type!r}"
         )
 
-    if data.startswith(b"\\xff\\xd8\\xff"):
+    if data.startswith(b"\xff\xd8\xff"):
         extension, expected_mime = ".jpg", "image/jpeg"
-    elif data.startswith(b"\\x89PNG\\r\\n\\x1a\\n"):
+    elif data.startswith(b"\x89PNG\r\n\x1a\n"):
         extension, expected_mime = ".png", "image/png"
     elif data.startswith(b"RIFF") and data[8:12] == b"WEBP":
         extension, expected_mime = ".webp", "image/webp"
