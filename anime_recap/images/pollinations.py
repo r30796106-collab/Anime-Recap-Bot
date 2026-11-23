@@ -16,14 +16,29 @@ class PollinationsError(RuntimeError):
 
 
 def _image_extension(data: bytes, content_type: str) -> str:
-    if data.startswith(b"\xff\xd8\xff"):
-        return ".jpg"
-    if data.startswith(b"\x89PNG\r\n\x1a\n"):
-        return ".png"
-    if data.startswith(b"RIFF") and data[8:12] == b"WEBP":
-        return ".webp"
-    raise PollinationsError(f"Provider response is not a recognized image ({content_type})")
+    mime = content_type.split(";", 1)[0].strip().lower()
+    if mime and not mime.startswith("image/"):
+        raise PollinationsError(
+            f"Provider response is not a recognized image: unexpected content type {content_type!r}"
+        )
 
+    if data.startswith(b"\\xff\\xd8\\xff"):
+        extension, expected_mime = ".jpg", "image/jpeg"
+    elif data.startswith(b"\\x89PNG\\r\\n\\x1a\\n"):
+        extension, expected_mime = ".png", "image/png"
+    elif data.startswith(b"RIFF") and data[8:12] == b"WEBP":
+        extension, expected_mime = ".webp", "image/webp"
+    else:
+        raise PollinationsError(f"Provider response is not a recognized image ({content_type})")
+
+    if mime and mime not in {
+        expected_mime,
+        "image/jpg" if expected_mime == "image/jpeg" else expected_mime,
+    }:
+        raise PollinationsError(
+            f"Provider response image signature does not match content type {content_type!r}"
+        )
+    return extension
 
 class PollinationsClient:
     """Pollinations unified gateway client; requires a user-provided API key."""
