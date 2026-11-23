@@ -72,9 +72,10 @@ def test_retries_failed_request(monkeypatch, tmp_path):
     assert calls["n"] == 2
 
 
-def test_rejects_non_image_response(monkeypatch, tmp_path):
+@pytest.mark.parametrize("content_type", ["text/html", "image/png"])
+def test_rejects_non_image_or_mismatched_response(monkeypatch, tmp_path, content_type):
     response = FakeResponse()
-    response.headers = {"Content-Type": "text/html"}
+    response.headers = {"Content-Type": content_type}
 
     monkeypatch.setattr("anime_recap.images.pollinations.urlopen", lambda *a, **kw: response)
     with pytest.raises(PollinationsError, match="not a recognized image"):
