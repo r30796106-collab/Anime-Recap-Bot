@@ -29,8 +29,8 @@ def test_render_command_runs_preflight_and_calls_export(tmp_path, monkeypatch, c
     images.mkdir()
     first = images / "001_scene_001.png"
     second = images / "scene_002.jpg"
-    first.write_bytes(b"image-one")
-    second.write_bytes(b"image-two")
+    first.write_bytes(b"\\x89PNG\\r\\n\\x1a\\nplaceholder")
+    second.write_bytes(b"\\xff\\xd8\\xffplaceholder")
     audio = tmp_path / "narration.wav"
     music = tmp_path / "music.wav"
     subtitles = tmp_path / "captions.srt"
@@ -85,8 +85,8 @@ def test_render_rejects_two_narration_sources(tmp_path, monkeypatch):
     _write_plan(plan)
     images = tmp_path / "images"
     images.mkdir()
-    (images / "001_scene_001.png").write_bytes(b"one")
-    (images / "002_scene_002.png").write_bytes(b"two")
+    (images / "001_scene_001.png").write_bytes(b"\\x89PNG\\r\\n\\x1a\\nplaceholder")
+    (images / "002_scene_002.png").write_bytes(b"\\x89PNG\\r\\n\\x1a\\nplaceholder")
     monkeypatch.setattr(
         sys, "argv",
         [
