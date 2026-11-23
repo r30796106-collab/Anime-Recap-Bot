@@ -85,8 +85,8 @@ def test_render_rejects_two_narration_sources(tmp_path, monkeypatch):
     _write_plan(plan)
     images = tmp_path / "images"
     images.mkdir()
-    (images / "001_scene_001.png").write_bytes(b"\\x89PNG\\r\\n\\x1a\\nplaceholder")
-    (images / "002_scene_002.png").write_bytes(b"\\x89PNG\\r\\n\\x1a\\nplaceholder")
+    (images / "001_scene_001.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
+    (images / "002_scene_002.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
     monkeypatch.setattr(
         sys, "argv",
         [
