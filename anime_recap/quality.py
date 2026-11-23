@@ -12,11 +12,10 @@ def _is_supported_image(path: Path) -> bool:
     with path.open("rb") as image_file:
         header = image_file.read(12)
     return (
-        header.startswith(b"\\xff\\xd8\\xff")
-        or header.startswith(b"\\x89PNG\\r\\n\\x1a\\n")
+        header.startswith(b"\xff\xd8\xff")
+        or header.startswith(b"\x89PNG\r\n\x1a\n")
         or (header.startswith(b"RIFF") and header[8:12] == b"WEBP")
     )
-
 
 def validate_recap_assets(
     project: RecapProject, image_paths: list[str | Path]
