@@ -36,7 +36,8 @@ def _image_extension(data: bytes, content_type: str) -> str:
         "image/jpg" if expected_mime == "image/jpeg" else expected_mime,
     }:
         raise PollinationsError(
-            f"Provider response is not a recognized image: signature does not match content type {content_type!r}"
+            "Provider response is not a recognized image: signature does not match content type "
+            f"{content_type!r}"
         )
     return extension
 
