@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from anime_recap.images.pollinations import (
     PollinationsClient,
     PollinationsError,
