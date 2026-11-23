@@ -1,6 +1,7 @@
 """Command-line entry point for Anime Recap Bot."""
 import argparse
 import json
+import os
 from pathlib import Path
 
 from anime_recap.models import Character, RecapProject, Scene
@@ -40,6 +41,44 @@ def main() -> None:
     voice_parser.add_argument("plan", type=Path)
     voice_parser.add_argument("--voice", required=True, help="Installed Kokoro Hindi voice ID")
     voice_parser.add_argument("--output-dir", type=Path, default=Path("outputs/voice"))
+
+    images_parser = subparsers.add_parser(
+        "images", help="Generate and download one image per scene using ComfyUI"
+    )
+    images_parser.add_argument("plan", type=Path)
+    images_parser.add_argument("--workflow", type=Path, required=True,
+                               help="ComfyUI API-format workflow JSON")
+    images_parser.add_argument("--prompt-node", required=True,
+                               help="Node ID of the positive CLIPTextEncode text input")
+    images_parser.add_argument("--negative-prompt-node",
+                               help="Optional node ID of the negative CLIPTextEncode text input")
+    images_parser.add_argument("--seed-node", help="Optional node ID of the sampler seed input")
+    images_parser.add_argument("--seed", type=int, default=1)
+    images_parser.add_argument("--url", default=os.environ.get("COMFYUI_URL"),
+                               help="ComfyUI base URL (or set COMFYUI_URL)")
+    images_parser.add_argument("--output-dir", type=Path, default=Path("outputs/images"))
+    images_parser.add_argument("--timeout", type=float, default=600.0)
+    images_parser.add_argument("--style", default=None)
+
+    free_images_parser = subparsers.add_parser(
+        "images-pollinations", aliases=["images-free"],
+        help="Generate scene images through Pollinations (API key required)"
+    )
+    free_images_parser.add_argument("plan", type=Path)
+    free_images_parser.add_argument("--output-dir", type=Path, default=Path("outputs/images"))
+    free_images_parser.add_argument("--style", default=None)
+    free_images_parser.add_argument("--seed", type=int, default=1000)
+    free_images_parser.add_argument("--width", type=int, default=768)
+    free_images_parser.add_argument("--height", type=int, default=1024)
+    free_images_parser.add_argument("--model", default="tongyi-mai/z-image-turbo")
+    free_images_parser.add_argument("--timeout", type=float, default=120.0)
+
+    enhance_parser = subparsers.add_parser("enhance-images", help="Upscale scene images with optional Real-ESRGAN NCNN CLI")
+    enhance_parser.add_argument("images_dir", type=Path)
+    enhance_parser.add_argument("--output-dir", type=Path, default=Path("outputs/enhanced"))
+    enhance_parser.add_argument("--executable", default="realesrgan-ncnn-vulkan")
+    enhance_parser.add_argument("--model", default="realesr-animevideov3")
+    enhance_parser.add_argument("--scale", type=int, choices=(2, 3, 4), default=2)
 
     render_parser = subparsers.add_parser(
         "render", help="Assemble a recap from scene images and optional audio assets"
@@ -87,6 +126,52 @@ def main() -> None:
         }
         args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"Created {len(project.scenes)} scenes: {args.output}")
+    elif args.command == "images":
+        from anime_recap.images.comfyui import ComfyUIClient
+        from anime_recap.images.generation import generate_scene_images
+        from anime_recap.images.prompts import DEFAULT_STYLE
+
+        if not args.url:
+            raise SystemExit("ComfyUI URL is required; pass --url or set COMFYUI_URL")
+        project = _load_project(args.plan)
+        try:
+            workflow = json.loads(args.workflow.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise SystemExit(f"Cannot read ComfyUI workflow JSON: {exc}") from exc
+        if not isinstance(workflow, dict):
+            raise SystemExit("ComfyUI workflow must be an API-format JSON object")
+        outputs = generate_scene_images(
+            project,
+            workflow,
+            ComfyUIClient(args.url),
+            args.output_dir,
+            prompt_node_id=args.prompt_node,
+            negative_prompt_node_id=args.negative_prompt_node,
+            seed_node_id=args.seed_node,
+            seed=args.seed,
+            timeout=args.timeout,
+            style=args.style or DEFAULT_STYLE,
+        )
+        print(f"Generated and downloaded {len(outputs)} scene images to {args.output_dir}")
+    elif args.command in {"images-pollinations", "images-free"}:
+        from anime_recap.images.pollinations import PollinationsClient, generate_scene_images_free
+        from anime_recap.images.prompts import DEFAULT_STYLE
+
+        project = _load_project(args.plan)
+        outputs = generate_scene_images_free(
+            project, PollinationsClient(model=args.model, timeout=args.timeout), args.output_dir,
+            style=args.style or DEFAULT_STYLE, seed=args.seed, width=args.width, height=args.height,
+        )
+        print(f"Generated {len(outputs)} images with Pollinations in {args.output_dir}")
+    elif args.command == "enhance-images":
+        from anime_recap.images.enhance import enhance_images
+
+        valid_exts = {".png", ".jpg", ".jpeg", ".webp"}
+        sources = sorted(path for path in args.images_dir.iterdir() if path.is_file() and path.suffix.lower() in valid_exts)
+        if not sources:
+            raise SystemExit(f"No image files found in {args.images_dir}")
+        outputs = enhance_images(sources, args.output_dir, executable=args.executable, model=args.model, scale=args.scale)
+        print(f"Enhanced {len(outputs)} images into {args.output_dir}")
     elif args.command == "render":
         from anime_recap.export import export_video
         from anime_recap.quality import validate_recap_assets

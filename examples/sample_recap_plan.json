@@ -1,0 +1,81 @@
+{
+  "title": "दीये की आखिरी रोशनी",
+  "language": "hi",
+  "aspect_ratio": "9:16",
+  "target_width": 1080,
+  "target_height": 1920,
+  "scenes": [
+    {
+      "scene_id": "scene_001",
+      "narration": "एक छोटे से पहाड़ी कस्बे में आरव नाम का लड़का अपनी दादी के साथ रहता था। हर शाम वह पुराने रेलवे स्टेशन के पास चमकती एक रहस्यमयी रोशनी देखता था।",
+      "visual_prompt": "Wide establishing shot of a bright modern Indian hill town at golden hour, Aarav and his grandmother outside their cozy home, distant old railway station glowing faintly, cinematic Japanese anime background art, vertical composition",
+      "character_ids": [
+        "aarav",
+        "dadi"
+      ],
+      "duration_seconds": 5
+    },
+    {
+      "scene_id": "scene_002",
+      "narration": "एक रात तेज़ तूफ़ान आया और पूरे कस्बे की बिजली चली गई। उसी अँधेरे में स्टेशन की बंद घड़ी अचानक चलने लगी।",
+      "visual_prompt": "Aarav standing near the old railway station during a dramatic monsoon storm, town lights have gone dark, the giant station clock suddenly glowing and moving, rain and wind, cinematic anime lighting",
+      "character_ids": [
+        "aarav"
+      ],
+      "duration_seconds": 5
+    },
+    {
+      "scene_id": "scene_003",
+      "narration": "आरव ने देखा कि प्लेटफ़ॉर्म पर एक छोटा सुनहरा दीया जल रहा था। दीये के पास उसे एक पुराना नक्शा मिला जिस पर उसके घर का निशान बना था।",
+      "visual_prompt": "Aarav kneeling on a rain-soaked railway platform, discovering a small warm golden oil lamp and an aged hand-drawn map beside it, magical golden light illuminating his surprised face, close cinematic shot",
+      "character_ids": [
+        "aarav"
+      ],
+      "duration_seconds": 5
+    },
+    {
+      "scene_id": "scene_004",
+      "narration": "वह नक्शा लेकर घर पहुँचा तो दादी ने बताया कि यह दीया उसके दादा का था। दादा ने इसे कस्बे की आखिरी उम्मीद बचाने के लिए छिपाया था।",
+      "visual_prompt": "Inside a warm modest Indian home, grandmother in a maroon sari and mustard shawl explains the old family map to Aarav beside a glowing brass diya, emotional expressions, intimate cinematic anime scene",
+      "character_ids": [
+        "aarav",
+        "dadi"
+      ],
+      "duration_seconds": 5
+    },
+    {
+      "scene_id": "scene_005",
+      "narration": "नक्शे के आखिरी निशान पर आरव को पहाड़ी के नीचे एक सूखा जलस्रोत मिला। उसने दीये को पत्थर के पास रखा और ज़मीन के भीतर से पानी की आवाज़ सुनाई दी।",
+      "visual_prompt": "Aarav at a rocky hillside spring beneath the town, placing the glowing brass diya beside a marked stone, tiny streams beginning to emerge, hopeful magical atmosphere, lush Indian mountain landscape",
+      "character_ids": [
+        "aarav"
+      ],
+      "duration_seconds": 5
+    },
+    {
+      "scene_id": "scene_006",
+      "narration": "सुबह होते ही पूरे कस्बे में फिर से पानी बहने लगा। आरव समझ गया कि असली जादू दीये में नहीं, बल्कि हिम्मत और यादों में था।",
+      "visual_prompt": "Joyful sunrise over the Indian hill town, fresh water flowing through village channels, neighbors celebrating, Aarav holding the brass diya with a quiet smile, uplifting cinematic anime finale, golden sunlight",
+      "character_ids": [
+        "aarav"
+      ],
+      "duration_seconds": 5
+    }
+  ],
+  "characters": [
+    {
+      "character_id": "aarav",
+      "name": "Aarav",
+      "visual_description": "A 12-year-old Indian boy with warm medium-brown skin, large expressive dark-brown eyes, soft wavy black hair, a teal-blue hoodie, charcoal trousers and a small ochre-yellow backpack; keep his face, hairstyle, age and outfit identical in every scene.",
+      "reference_image": null,
+      "negative_prompt": "different hairstyle, different clothes, older teenager, adult face, duplicate character, extra fingers, malformed hands"
+    },
+    {
+      "character_id": "dadi",
+      "name": "Dadi",
+      "visual_description": "A kind elderly Indian grandmother with warm brown skin, gentle expressive eyes, silver hair in a neat low bun, a deep maroon sari and a mustard-yellow shawl; keep her face, hair and clothing identical in every scene.",
+      "reference_image": null,
+      "negative_prompt": "young woman, different sari color, loose hair, duplicate character, extra fingers, malformed hands"
+    }
+  ]
+}

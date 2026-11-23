@@ -72,10 +72,10 @@ JPEG and WebP are supported.
 
 ```bash
 anime-recap plan examples/sample_story_hi.txt --title "दीये की आखिरी रोशनी"
-anime-recap srt workspace/scene_plan.json --output outputs/recap.srt
+anime-recap srt examples/sample_recap_plan.json --output outputs/recap.srt
 # Generate scene images with your configured ComfyUI workflow and place them in outputs/images/.
-anime-recap voice workspace/scene_plan.json --voice YOUR_KOKORO_HINDI_VOICE
-anime-recap render workspace/scene_plan.json \
+anime-recap voice examples/sample_recap_plan.json --voice YOUR_KOKORO_HINDI_VOICE
+anime-recap render examples/sample_recap_plan.json \
   --images-dir outputs/images \
   --voice-dir outputs/voice \
   --subtitles outputs/recap.srt \
@@ -87,3 +87,60 @@ Alternatively, pass one already-concatenated narration track with `--audio narra
 instead of `--voice-dir`. The render step checks that every scene has a non-empty image
 before invoking FFmpeg. External ComfyUI and Kokoro services still need to be configured
 separately; this command does not claim to generate those assets by itself.
+
+
+### Generate scene images with ComfyUI
+
+Export a workflow from ComfyUI using **Save (API Format)**. The workflow must be the API-format
+JSON object (node IDs mapped to node definitions), not the regular UI workflow export. Identify
+the positive and optional negative `CLIPTextEncode` node IDs, plus the optional sampler seed
+node ID. The command injects a character-aware scene prompt into the positive text node, applies
+the negative prompt when configured, submits one workflow per scene, waits for completion and
+downloads the first image output for each scene.
+
+```bash
+# This checked-in sample plan contains six 5-second scenes and fixed Aarav/Dadi profiles.
+export COMFYUI_URL="http://127.0.0.1:8188"
+anime-recap images examples/sample_recap_plan.json \
+  --workflow workflows/anime_portrait_api.json \
+  --prompt-node 6 \
+  --negative-prompt-node 7 \
+  --seed-node 3 \
+  --seed 4100 \
+  --output-dir outputs/images
+
+# Generate Hindi narration, subtitles and assemble the MP4
+anime-recap voice examples/sample_recap_plan.json --voice YOUR_INSTALLED_HINDI_VOICE
+anime-recap srt examples/sample_recap_plan.json --output outputs/recap.srt
+anime-recap render examples/sample_recap_plan.json \
+  --images-dir outputs/images \
+  --voice-dir outputs/voice \
+  --subtitles outputs/recap.srt \
+  --output outputs/recap.mp4
+```
+
+Node IDs above are examples only: read them from your own API-format workflow. The workflow must
+contain a positive text input named `text`; if supplied, the negative prompt node must also expose
+`inputs.text`, and the seed node must expose `inputs.seed`. Use a workflow compatible with the
+models and custom nodes installed on your ComfyUI server. The bot does not install model weights
+or custom nodes automatically. For remote servers, use an authenticated/private network path;
+do not expose an unauthenticated ComfyUI instance to the public internet.
+
+## Pollinations image generation and anime upscaling
+
+Pollinations is an optional cloud image-generation alternative to self-hosted ComfyUI. Its current unified gateway requires an API key; service availability, model access and costs/credits may change. Get a key from `enter.pollinations.ai`, store it in `POLLINATIONS_API_KEY` (never commit it), and review generated scene relevance.
+
+```bash
+export POLLINATIONS_API_KEY='YOUR_KEY_HERE'\nanime-recap images-pollinations examples/sample_recap_plan.json --output-dir outputs/images --model tongyi-mai/z-image-turbo
+```
+
+This creates one prompt-conditioned image per scene using the character-aware prompts, retries failed requests, validates image bytes, and varies the seed per scene. Authentication is required; use models with free credits/allowance only if available in your account. The endpoint is not a guaranteed free service or production SLA.
+
+Optional anime image enhancement uses the Real-ESRGAN NCNN/Vulkan command-line executable, which must be installed separately:
+
+```bash
+anime-recap enhance-images outputs/images --output-dir outputs/enhanced --model realesr-animevideov3 --scale 2
+```
+
+The enhancer validates each input/output and does not run if the executable is missing. Enhancement is opt-in; use the enhanced directory as your render images directory only after checking quality.
+
