@@ -17,6 +17,7 @@ def _is_supported_image(path: Path) -> bool:
         or (header.startswith(b"RIFF") and header[8:12] == b"WEBP")
     )
 
+
 def validate_recap_assets(
     project: RecapProject, image_paths: list[str | Path]
 ) -> dict[str, Any]:
