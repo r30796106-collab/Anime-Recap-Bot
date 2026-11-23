@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 from anime_recap.images.enhance import enhance_image, enhance_images
