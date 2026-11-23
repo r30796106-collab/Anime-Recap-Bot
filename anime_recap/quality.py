@@ -11,10 +11,8 @@ def _is_supported_image(path: Path) -> bool:
     """Recognize supported image signatures without loading the full image."""
     with path.open("rb") as image_file:
         header = image_file.read(12)
-    return (
-        header.startswith(b"\xff\xd8\xff")
-        or header.startswith(b"\x89PNG\r\n\x1a\n")
-        or (header.startswith(b"RIFF") and header[8:12] == b"WEBP")
+    return header.startswith((b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n")) or (
+        header.startswith(b"RIFF") and header[8:12] == b"WEBP"
     )
 
 
