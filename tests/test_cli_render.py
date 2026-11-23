@@ -29,8 +29,8 @@ def test_render_command_runs_preflight_and_calls_export(tmp_path, monkeypatch, c
     images.mkdir()
     first = images / "001_scene_001.png"
     second = images / "scene_002.jpg"
-    first.write_bytes(b"\\x89PNG\\r\\n\\x1a\\nplaceholder")
-    second.write_bytes(b"\\xff\\xd8\\xffplaceholder")
+    first.write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
+    second.write_bytes(b"\xff\xd8\xffplaceholder")
     audio = tmp_path / "narration.wav"
     music = tmp_path / "music.wav"
     subtitles = tmp_path / "captions.srt"
