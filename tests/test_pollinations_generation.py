@@ -8,6 +8,7 @@ from anime_recap.images.pollinations import (
 )
 from anime_recap.models import RecapProject, Scene
 
+
 class FakeResponse:
     def __init__(self):
         self.headers = {"Content-Type": "image/jpeg"}
