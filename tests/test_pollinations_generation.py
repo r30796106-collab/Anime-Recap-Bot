@@ -1,13 +1,15 @@
-from pathlib import Path
-
 import pytest
 
-from anime_recap.images.pollinations import PollinationsClient, PollinationsError, generate_scene_images_free
+from anime_recap.images.pollinations import (
+    PollinationsClient,
+    PollinationsError,
+    generate_scene_images_free,
+)
 from anime_recap.models import RecapProject, Scene
 
-
 class FakeResponse:
-    headers = {"Content-Type": "image/jpeg"}
+    def __init__(self):
+        self.headers = {"Content-Type": "image/jpeg"}
 
     def __enter__(self):
         return self
