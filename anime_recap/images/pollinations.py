@@ -94,7 +94,7 @@ class PollinationsClient:
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 destination.write_bytes(data)
                 return destination
-            except Exception as exc:
+            except (OSError, TimeoutError, PollinationsError) as exc:
                 last_error = exc
                 if attempt < self.retries:
                     time.sleep(min(2 ** attempt, 4))
