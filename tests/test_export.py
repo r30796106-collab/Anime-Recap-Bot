@@ -46,7 +46,6 @@ def test_export_can_mix_narration_and_background_music(tmp_path: Path) -> None:
     assert "[aout]" in joined
 
 
-
 def test_export_can_disable_still_image_motion(tmp_path: Path) -> None:
     image = tmp_path / "scene.png"
     image.write_bytes(b"placeholder")
