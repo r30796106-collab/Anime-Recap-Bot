@@ -138,9 +138,15 @@ def validate_rendered_video(
 
     streams = metadata.get("streams")
     if not isinstance(streams, list):
-        raise ValueError("FFprobe did not return a stream list")
-    video_streams = [stream for stream in streams if stream.get("codec_type") == "video"]
-    audio_streams = [stream for stream in streams if stream.get("codec_type") == "audio"]
+        raise TypeError("FFprobe did not return a stream list")
+    video_streams = [
+        stream for stream in streams
+        if isinstance(stream, dict) and stream.get("codec_type") == "video"
+    ]
+    audio_streams = [
+        stream for stream in streams
+        if isinstance(stream, dict) and stream.get("codec_type") == "audio"
+    ]
     if not video_streams:
         raise ValueError("Rendered file contains no video stream")
 
