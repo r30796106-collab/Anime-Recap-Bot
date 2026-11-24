@@ -63,6 +63,7 @@ def test_render_command_runs_preflight_and_calls_export(tmp_path, monkeypatch, c
     assert kwargs["audio_path"] == audio
     assert kwargs["background_music_path"] == music
     assert kwargs["subtitle_path"] == subtitles
+    assert kwargs["motion"] is True
     assert "Rendered 2 scenes" in capsys.readouterr().out
 
 
@@ -97,3 +98,30 @@ def test_render_rejects_two_narration_sources(tmp_path, monkeypatch):
 
     with pytest.raises(SystemExit, match="Choose either"):
         cli.main()
+
+
+def test_render_cli_can_disable_motion(tmp_path, monkeypatch):
+    plan = tmp_path / "plan.json"
+    _write_plan(plan)
+    images = tmp_path / "images"
+    images.mkdir()
+    (images / "001_scene_001.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
+    (images / "002_scene_002.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
+    calls = []
+
+    def fake_export(project, image_paths, output_path, **kwargs):
+        calls.append(kwargs)
+
+    monkeypatch.setattr("anime_recap.export.export_video", fake_export)
+    monkeypatch.setattr(
+        sys, "argv",
+        [
+            "anime-recap", "render", str(plan), "--images-dir", str(images),
+            "--no-motion", "--output", str(tmp_path / "out.mp4"),
+        ],
+    )
+
+    cli.main()
+
+    assert len(calls) == 1
+    assert calls[0]["motion"] is False

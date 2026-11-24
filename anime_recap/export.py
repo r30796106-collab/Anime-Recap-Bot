@@ -4,6 +4,7 @@ import subprocess
 from collections.abc import Sequence
 from pathlib import Path
 
+from anime_recap.animation import build_ken_burns_filter
 from anime_recap.models import RecapProject
 
 
@@ -16,6 +17,7 @@ def build_ffmpeg_command(
     ffmpeg_bin: str = "ffmpeg",
     background_music_path: str | Path | None = None,
     music_volume: float = 0.18,
+    motion: bool = True,
 ) -> list[str]:
     project.validate()
     if len(image_paths) != len(project.scenes) or not image_paths:
@@ -31,20 +33,33 @@ def build_ffmpeg_command(
 
     command = [ffmpeg_bin, "-y"]
     for image, scene in zip(image_paths, project.scenes):
-        command.extend(["-loop", "1", "-t", str(scene.duration_seconds), "-i", str(image)])
+        if motion:
+            # Feed one still frame to zoompan; d=duration*fps creates the full scene.
+            command.extend(["-loop", "1", "-framerate", "1", "-t", "1", "-i", str(image)])
+        else:
+            command.extend(["-loop", "1", "-t", str(scene.duration_seconds), "-i", str(image)])
     if audio_path is not None:
         command.extend(["-i", str(audio_path)])
     if background_music_path is not None:
         command.extend(["-stream_loop", "-1", "-i", str(background_music_path)])
 
     filters = []
-    for index in range(len(image_paths)):
-        filters.append(
-            f"[{index}:v]scale={project.target_width}:{project.target_height}:"
-            "force_original_aspect_ratio=increase,"
-            f"crop={project.target_width}:{project.target_height},setsar=1,"
-            f"fps=60,format=yuv420p[v{index}]"
-        )
+    for index, scene in enumerate(project.scenes):
+        if motion:
+            scene_filter = build_ken_burns_filter(
+                scene,
+                width=project.target_width,
+                height=project.target_height,
+                fps=60,
+            )
+            filters.append(f"[{index}:v]{scene_filter},format=yuv420p[v{index}]")
+        else:
+            filters.append(
+                f"[{index}:v]scale={project.target_width}:{project.target_height}:"
+                "force_original_aspect_ratio=increase,"
+                f"crop={project.target_width}:{project.target_height},setsar=1,"
+                f"fps=60,format=yuv420p[v{index}]"
+            )
     concat_inputs = "".join(f"[v{i}]" for i in range(len(image_paths)))
     filters.append(f"{concat_inputs}concat=n={len(image_paths)}:v=1:a=0[vout]")
     video_label = "[vout]"
