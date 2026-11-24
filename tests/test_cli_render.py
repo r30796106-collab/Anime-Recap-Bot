@@ -64,6 +64,7 @@ def test_render_command_runs_preflight_and_calls_export(tmp_path, monkeypatch, c
     assert kwargs["background_music_path"] == music
     assert kwargs["subtitle_path"] == subtitles
     assert kwargs["motion"] is True
+    assert kwargs["ffprobe_bin"] == "ffprobe"
     assert "Rendered 2 scenes" in capsys.readouterr().out
 
 
