@@ -1,8 +1,11 @@
-"""FFmpeg command builder for assembling still-image recap scenes."""
+"""FFmpeg command builder and verified output checks for recap videos."""
+import json
 import shutil
 import subprocess
 from collections.abc import Sequence
+from fractions import Fraction
 from pathlib import Path
+from typing import Any
 
 from anime_recap.animation import build_ken_burns_filter
 from anime_recap.models import RecapProject
@@ -100,10 +103,126 @@ def build_ffmpeg_command(
     return command
 
 
-def export_video(*args, **kwargs) -> Path:
-    ffmpeg_bin = kwargs.get("ffmpeg_bin", "ffmpeg")
+def validate_rendered_video(
+    output_path: str | Path,
+    project: RecapProject,
+    ffprobe_bin: str = "ffprobe",
+    require_audio: bool = False,
+    expected_fps: float = 60.0,
+) -> dict[str, Any]:
+    """Verify that FFmpeg produced a readable MP4 with the expected video and audio streams."""
+    project.validate()
+    output = Path(output_path)
+    if not output.is_file() or output.stat().st_size == 0:
+        raise ValueError(f"Rendered video is missing or empty: {output}")
+    if shutil.which(ffprobe_bin) is None:
+        raise RuntimeError("FFprobe executable not found; install FFmpeg with ffprobe and retry")
+
+    result = subprocess.run(
+        [
+            ffprobe_bin,
+            "-v", "error",
+            "-show_entries",
+            "format=duration:stream=codec_type,width,height,avg_frame_rate",
+            "-of", "json",
+            str(output),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    try:
+        metadata = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise ValueError("FFprobe returned invalid JSON while validating the rendered video") from exc
+
+    streams = metadata.get("streams")
+    if not isinstance(streams, list):
+        raise TypeError("FFprobe did not return a stream list")
+    video_streams = [
+        stream for stream in streams
+        if isinstance(stream, dict) and stream.get("codec_type") == "video"
+    ]
+    audio_streams = [
+        stream for stream in streams
+        if isinstance(stream, dict) and stream.get("codec_type") == "audio"
+    ]
+    if not video_streams:
+        raise ValueError("Rendered file contains no video stream")
+
+    video = video_streams[0]
+    actual_dimensions = (video.get("width"), video.get("height"))
+    expected_dimensions = (project.target_width, project.target_height)
+    if actual_dimensions != expected_dimensions:
+        raise ValueError(
+            f"Rendered video dimensions {actual_dimensions} do not match "
+            f"expected {expected_dimensions}"
+        )
+
+    try:
+        actual_fps = float(Fraction(video["avg_frame_rate"]))
+    except (KeyError, ValueError, ZeroDivisionError) as exc:
+        raise ValueError("FFprobe did not return a valid video frame rate") from exc
+    if abs(actual_fps - expected_fps) > 0.1:
+        raise ValueError(
+            f"Rendered video frame rate {actual_fps:g} does not match expected {expected_fps:g}"
+        )
+
+    format_data = metadata.get("format")
+    try:
+        duration = float(format_data["duration"])
+    except (TypeError, KeyError, ValueError) as exc:
+        raise ValueError("FFprobe did not return a valid video duration") from exc
+    expected_duration = sum(scene.duration_seconds for scene in project.scenes)
+    tolerance = max(0.25, expected_duration * 0.02)
+    if duration <= 0 or abs(duration - expected_duration) > tolerance:
+        raise ValueError(
+            f"Rendered duration {duration:.3f}s does not match expected "
+            f"{expected_duration:.3f}s (tolerance {tolerance:.3f}s)"
+        )
+    if require_audio and not audio_streams:
+        raise ValueError("Rendered video is missing the requested audio stream")
+
+    return {
+        "ok": True,
+        "duration_seconds": duration,
+        "width": actual_dimensions[0],
+        "height": actual_dimensions[1],
+        "frame_rate": actual_fps,
+        "has_audio": bool(audio_streams),
+    }
+
+
+def export_video(
+    project: RecapProject,
+    image_paths: Sequence[str | Path],
+    output_path: str | Path,
+    audio_path: str | Path | None = None,
+    subtitle_path: str | Path | None = None,
+    ffmpeg_bin: str = "ffmpeg",
+    background_music_path: str | Path | None = None,
+    music_volume: float = 0.18,
+    motion: bool = True,
+    ffprobe_bin: str = "ffprobe",
+) -> Path:
     if shutil.which(ffmpeg_bin) is None:
         raise RuntimeError("FFmpeg executable not found; install FFmpeg and retry")
-    command = build_ffmpeg_command(*args, **kwargs)
+    command = build_ffmpeg_command(
+        project,
+        image_paths,
+        output_path,
+        audio_path=audio_path,
+        subtitle_path=subtitle_path,
+        ffmpeg_bin=ffmpeg_bin,
+        background_music_path=background_music_path,
+        music_volume=music_volume,
+        motion=motion,
+    )
     subprocess.run(command, check=True)
-    return Path(args[2] if len(args) > 2 else kwargs["output_path"])
+    validate_rendered_video(
+        output_path,
+        project,
+        ffprobe_bin=ffprobe_bin,
+        require_audio=audio_path is not None or background_music_path is not None,
+    )
+    return Path(output_path)
