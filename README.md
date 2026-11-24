@@ -84,9 +84,12 @@ anime-recap render examples/sample_recap_plan.json \
 ```
 
 Alternatively, pass one already-concatenated narration track with `--audio narration.wav`
-instead of `--voice-dir`. The render step checks that every scene has a non-empty image
-before invoking FFmpeg. External ComfyUI and Kokoro services still need to be configured
-separately; this command does not claim to generate those assets by itself.
+instead of `--voice-dir`. The render step checks that every scene has a non-empty image before invoking FFmpeg. After
+encoding, it uses FFprobe to verify that the MP4 is readable and has the expected 9:16 dimensions,
+60 fps, scene-plan duration and (when narration or music was supplied) an audio stream. Install
+FFmpeg and FFprobe and pass `--ffprobe` if the executable is not named `ffprobe`. External ComfyUI
+and Kokoro services still need to be configured separately; this command does not claim to generate
+those assets by itself. A passing mocked CI test validates the probe logic, not an actual sample MP4.
 
 
 ### Generate scene images with ComfyUI
