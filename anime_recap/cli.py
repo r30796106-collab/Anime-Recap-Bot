@@ -91,6 +91,8 @@ def main() -> None:
     render_parser.add_argument("--subtitles", type=Path)
     render_parser.add_argument("--output", type=Path, default=Path("outputs/recap.mp4"))
     render_parser.add_argument("--ffmpeg", default="ffmpeg")
+    render_parser.add_argument("--ffprobe", default="ffprobe",
+                               help="FFprobe executable used to verify the rendered MP4")
     render_parser.add_argument("--no-motion", action="store_true",
                                help="Disable Ken Burns motion on still-image scenes")
 
@@ -237,6 +239,7 @@ def main() -> None:
             audio_path=narration,
             subtitle_path=args.subtitles,
             ffmpeg_bin=args.ffmpeg,
+            ffprobe_bin=args.ffprobe,
             background_music_path=args.music,
             motion=not args.no_motion,
         )
