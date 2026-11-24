@@ -127,4 +127,4 @@ def test_export_video_runs_ffprobe_after_ffmpeg_and_requires_audio(tmp_path, mon
     assert result == output
     assert calls[0][0] == "ffmpeg"
     assert calls[1][:2] == ["ffprobe", "-v"]
-    assert "stream=codec_type,width,height,avg_frame_rate" in calls[1]
+    assert any("stream=codec_type,width,height,avg_frame_rate" in item for item in calls[1])
