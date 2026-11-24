@@ -91,6 +91,8 @@ def main() -> None:
     render_parser.add_argument("--subtitles", type=Path)
     render_parser.add_argument("--output", type=Path, default=Path("outputs/recap.mp4"))
     render_parser.add_argument("--ffmpeg", default="ffmpeg")
+    render_parser.add_argument("--no-motion", action="store_true",
+                               help="Disable Ken Burns motion on still-image scenes")
 
     args = parser.parse_args()
 
@@ -236,6 +238,7 @@ def main() -> None:
             subtitle_path=args.subtitles,
             ffmpeg_bin=args.ffmpeg,
             background_music_path=args.music,
+            motion=not args.no_motion,
         )
         print(f"Rendered {len(project.scenes)} scenes: {args.output}")
     elif args.command == "srt":
