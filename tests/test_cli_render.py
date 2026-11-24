@@ -100,14 +100,13 @@ def test_render_rejects_two_narration_sources(tmp_path, monkeypatch):
         cli.main()
 
 
-
 def test_render_cli_can_disable_motion(tmp_path, monkeypatch):
     plan = tmp_path / "plan.json"
     _write_plan(plan)
     images = tmp_path / "images"
     images.mkdir()
-    (images / "001_scene_001.png").write_bytes(b"\\x89PNG\\r\\n\\x1a\\nplaceholder")
-    (images / "002_scene_002.png").write_bytes(b"\\x89PNG\\r\\n\\x1a\\nplaceholder")
+    (images / "001_scene_001.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
+    (images / "002_scene_002.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
     calls = []
 
     def fake_export(project, image_paths, output_path, **kwargs):
