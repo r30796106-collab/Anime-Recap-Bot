@@ -105,10 +105,10 @@ downloads the first image output for each scene.
 # This checked-in sample plan contains six 5-second scenes and fixed Aarav/Dadi profiles.
 export COMFYUI_URL="http://127.0.0.1:8188"
 anime-recap images examples/sample_recap_plan.json \
-  --workflow workflows/anime_portrait_api.json \
-  --prompt-node 6 \
-  --negative-prompt-node 7 \
-  --seed-node 3 \
+  --workflow /path/to/your_api_workflow.json \
+  --prompt-node YOUR_POSITIVE_TEXT_NODE_ID \
+  --negative-prompt-node YOUR_NEGATIVE_TEXT_NODE_ID \
+  --seed-node YOUR_SAMPLER_NODE_ID \
   --seed 4100 \
   --output-dir outputs/images
 
@@ -122,7 +122,7 @@ anime-recap render examples/sample_recap_plan.json \
   --output outputs/recap.mp4
 ```
 
-Node IDs above are examples only: read them from your own API-format workflow. The workflow must
+The workflow path and node IDs above are placeholders, not files or IDs shipped by this repository. Export your own workflow from ComfyUI using **Save (API Format)**, then substitute its actual path and node IDs. The repository intentionally does not bundle a model-specific workflow because checkpoint names, custom nodes and graph structure depend on the user's ComfyUI installation. The workflow must
 contain a positive text input named `text`; if supplied, the negative prompt node must also expose
 `inputs.text`, and the seed node must expose `inputs.seed`. Use a workflow compatible with the
 models and custom nodes installed on your ComfyUI server. The bot does not install model weights
