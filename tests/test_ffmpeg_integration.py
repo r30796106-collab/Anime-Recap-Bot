@@ -27,10 +27,10 @@ def _write_png(path, width: int = 64, height: int = 64) -> None:
         pixels = bytearray()
         for x in range(width):
             pixels.extend((x * 4 % 256, y * 4 % 256, 180))
-        rows.append(b"\\x00" + bytes(pixels))
+        rows.append(bytes([0]) + bytes(pixels))
     header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
     image = (
-        b"\\x89PNG\\r\\n\\x1a\\n"
+        bytes([137, 80, 78, 71, 13, 10, 26, 10])
         + _png_chunk(b"IHDR", header)
         + _png_chunk(b"IDAT", zlib.compress(b"".join(rows)))
         + _png_chunk(b"IEND", b"")
