@@ -49,8 +49,47 @@ class ComfyUIClient:
         while time.monotonic() < deadline:
             history = self.get_history(prompt_id)
             record = history.get(prompt_id)
-            if isinstance(record, dict) and record.get("outputs"):
-                return record
+            if isinstance(record, dict):
+                status = record.get("status")
+                status_str = (
+                    status.get("status_str", "")
+                    if isinstance(status, dict)
+                    else ""
+                )
+                if not isinstance(status_str, str):
+                    status_str = ""
+                messages = status.get("messages", []) if isinstance(status, dict) else []
+                if not isinstance(messages, list):
+                    messages = []
+                execution_error = any(
+                    isinstance(message, (list, tuple))
+                    and message
+                    and message[0] == "execution_error"
+                    for message in messages
+                )
+                if status_str.lower() in {"error", "failed"} or execution_error:
+                    details: list[str] = []
+                    for message in messages:
+                        if (
+                            isinstance(message, (list, tuple))
+                            and len(message) > 1
+                            and message[0] == "execution_error"
+                            and isinstance(message[1], dict)
+                        ):
+                            for key in ("exception_type", "exception_message"):
+                                value = message[1].get(key)
+                                if isinstance(value, str) and value.strip():
+                                    details.append(value.strip()[:200])
+                    summary = " - ".join(details) or status_str or "execution_error"
+                    raise ComfyUIError(
+                        f"ComfyUI workflow {prompt_id} failed: {summary}"
+                    )
+                if record.get("outputs"):
+                    return record
+                if isinstance(status, dict) and status.get("completed") is True:
+                    raise ComfyUIError(
+                        f"ComfyUI workflow {prompt_id} completed without outputs"
+                    )
             time.sleep(min(poll_interval, max(0.0, deadline - time.monotonic())))
         raise TimeoutError(f"ComfyUI workflow {prompt_id} did not finish in time")
 
