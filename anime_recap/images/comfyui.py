@@ -56,7 +56,11 @@ class ComfyUIClient:
                     if isinstance(status, dict)
                     else ""
                 )
+                if not isinstance(status_str, str):
+                    status_str = ""
                 messages = status.get("messages", []) if isinstance(status, dict) else []
+                if not isinstance(messages, list):
+                    messages = []
                 execution_error = any(
                     isinstance(message, (list, tuple))
                     and message
