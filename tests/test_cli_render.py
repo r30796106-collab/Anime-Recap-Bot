@@ -2,8 +2,13 @@ import json
 import sys
 
 import pytest
+from PIL import Image
 
 from anime_recap import cli
+
+
+def _write_test_image(path, image_format="PNG"):
+    Image.new("RGB", (512, 512), color=(30, 60, 90)).save(path, format=image_format)
 
 
 def _write_plan(path):
@@ -29,8 +34,8 @@ def test_render_command_runs_preflight_and_calls_export(tmp_path, monkeypatch, c
     images.mkdir()
     first = images / "001_scene_001.png"
     second = images / "scene_002.jpg"
-    first.write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
-    second.write_bytes(b"\xff\xd8\xffplaceholder")
+    _write_test_image(first, "PNG")
+    _write_test_image(second, "JPEG")
     audio = tmp_path / "narration.wav"
     music = tmp_path / "music.wav"
     subtitles = tmp_path / "captions.srt"
@@ -87,8 +92,8 @@ def test_render_rejects_two_narration_sources(tmp_path, monkeypatch):
     _write_plan(plan)
     images = tmp_path / "images"
     images.mkdir()
-    (images / "001_scene_001.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
-    (images / "002_scene_002.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
+    _write_test_image(images / "001_scene_001.png")
+    _write_test_image(images / "002_scene_002.png")
     monkeypatch.setattr(
         sys, "argv",
         [
@@ -106,8 +111,8 @@ def test_render_cli_can_disable_motion(tmp_path, monkeypatch):
     _write_plan(plan)
     images = tmp_path / "images"
     images.mkdir()
-    (images / "001_scene_001.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
-    (images / "002_scene_002.png").write_bytes(b"\x89PNG\r\n\x1a\nplaceholder")
+    _write_test_image(images / "001_scene_001.png")
+    _write_test_image(images / "002_scene_002.png")
     calls = []
 
     def fake_export(project, image_paths, output_path, **kwargs):
