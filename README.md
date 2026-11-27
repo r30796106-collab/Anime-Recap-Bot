@@ -147,3 +147,21 @@ anime-recap enhance-images outputs/images --output-dir outputs/enhanced --model 
 
 The enhancer validates each input/output and does not run if the executable is missing. Enhancement is opt-in; use the enhanced directory as your render images directory only after checking quality.
 
+
+
+## Decoded image-quality preflight
+
+The `render` command uses Pillow to fully decode every scene image before FFmpeg starts.
+It accepts JPEG, PNG and WebP, rejects truncated or unsupported files, and by default
+requires each source image to be at least 512×512 pixels while limiting decoded images to
+40 megapixels to avoid unexpectedly large allocations. Install the optional runtime support
+with:
+
+```bash
+python -m pip install -e '.[quality]'
+```
+
+These deterministic checks validate file integrity and usable resolution only. They do not
+judge whether an image matches the story, looks aesthetically good, or preserves a
+character's visual identity; those checks still require visual review or a dedicated
+vision/reference-image evaluation stage.
