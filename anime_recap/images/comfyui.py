@@ -15,13 +15,21 @@ class ComfyUIError(RuntimeError):
 
 
 class ComfyUIClient:
-    def __init__(self, base_url: str, timeout: float = 30.0) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        timeout: float = 30.0,
+        max_download_bytes: int = 50 * 1024 * 1024,
+    ) -> None:
         if not base_url.startswith(("http://", "https://")):
             raise ValueError("ComfyUI URL must use http:// or https://")
         if timeout <= 0:
             raise ValueError("Timeout must be positive")
+        if not isinstance(max_download_bytes, int) or isinstance(max_download_bytes, bool) or max_download_bytes <= 0:
+            raise ValueError("Maximum image download size must be positive")
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self.max_download_bytes = max_download_bytes
 
     def submit_workflow(self, workflow: dict[str, Any], client_id: str | None = None) -> str:
         if not isinstance(workflow, dict) or not workflow:
@@ -94,17 +102,24 @@ class ComfyUIClient:
         raise TimeoutError(f"ComfyUI workflow {prompt_id} did not finish in time")
 
     def download_image(self, image: dict[str, str], output_path: str | Path) -> Path:
-        """Download one image descriptor returned by a ComfyUI history record."""
+        """Download one bounded-size image descriptor returned by ComfyUI history."""
         required = ("filename", "subfolder", "type")
-        if any(not isinstance(image.get(key), str) for key in required):
-            raise ValueError("Image descriptor must contain filename, subfolder and type")
+        if any(not isinstance(image.get(key), str) or not image[key].strip() for key in required):
+            raise ValueError("Image descriptor must contain non-empty filename, subfolder and type")
         query = urlencode({key: image[key] for key in required})
         request = Request(self.base_url + "/view?" + query, method="GET")
         try:
             with urlopen(request, timeout=self.timeout) as response:
-                data = response.read()
+                # Read one byte beyond the configured cap so oversized responses
+                # are rejected without buffering the entire server response.
+                data = response.read(self.max_download_bytes + 1)
         except (HTTPError, URLError, TimeoutError) as exc:
             raise ComfyUIError(f"ComfyUI image download failed: {exc}") from exc
+        if len(data) > self.max_download_bytes:
+            raise ComfyUIError(
+                "ComfyUI image download exceeds configured limit "
+                f"({self.max_download_bytes} bytes)"
+            )
         if not data:
             raise ComfyUIError("ComfyUI returned an empty image")
         destination = Path(output_path)
