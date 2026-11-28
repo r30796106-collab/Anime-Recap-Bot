@@ -32,7 +32,7 @@ def test_invalid_server_url_is_rejected():
         ComfyUIClient("localhost:8188")
 
 
-@pytest.mark.parametrize("limit", [0, -1, True])
+@pytest.mark.parametrize("limit", [0, -1, True, 1.5])
 def test_invalid_download_limit_is_rejected(limit):
     with pytest.raises(ValueError, match="Maximum image download size"):
         ComfyUIClient("http://localhost:8188", max_download_bytes=limit)
