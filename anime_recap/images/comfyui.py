@@ -25,7 +25,7 @@ class ComfyUIClient:
             raise ValueError("ComfyUI URL must use http:// or https://")
         if timeout <= 0:
             raise ValueError("Timeout must be positive")
-        if isinstance(max_download_bytes, bool) or max_download_bytes <= 0:
+        if not isinstance(max_download_bytes, int) or isinstance(max_download_bytes, bool) or max_download_bytes <= 0:
             raise ValueError("Maximum image download size must be positive")
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
